@@ -1,0 +1,19 @@
+-classpath '/Users/mrettig/code/jetlang/target/classes'
+ -encoding
+'ISO-8859-1'
+-protected
+-sourcepath
+'/Users/mrettig/code/jetlang/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2009. All Rights Reserved.'
+-charset
+'ISO-8859-1'
+-d
+'/Users/mrettig/code/jetlang/target/site/apidocs'
+-doctitle
+'Jetlang 0.2.0 API'
+-use
+-version
+-windowtitle
+'Jetlang 0.2.0 API'
