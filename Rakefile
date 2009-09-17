@@ -5,26 +5,10 @@ require 'ftools'
 require 'rake/testtask'
 require 'lib/jretlang/version'
 include FileUtils
+
+SPEC = eval IO.read( 'jretlang.gem_spec' ) 
  
 task :default => :test
-
-NAME = "jretlang"
-VERS = JRL::VERSION
-PKG = "#{NAME}-#{VERS}"
-JARS = Dir.glob("vendor/*.jar")
-PKG_FILES = JARS + Dir.glob("lib/**/*.rb")
-
-SPEC = Gem::Specification.new do |s|
-  s.name = NAME
-  s.version = VERS
-  s.platform = Gem::Platform::CURRENT
-  s.summary = "JRuby wrapper for jetlang (jetlang.org)"
-  s.description = s.summary
-  s.author = "greeves"
-  s.has_rdoc = true
-  s.email = "reevesg@pobox.com"
-  s.files = PKG_FILES
-end
 
 task :default => :test
 
