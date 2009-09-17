@@ -1,0 +1,11 @@
+Gem::Specification.new do |s|
+  s.name = "jretlang"
+  s.version = "0.1.1"
+  s.platform = Gem::Platform::CURRENT
+  s.summary = "JRuby wrapper for jetlang (jetlang.org)"
+  s.description = s.summary
+  s.author = "greeves"
+  s.has_rdoc = true
+  s.email = "reevesg@pobox.com"
+  s.files = Dir.glob("vendor/*.jar") + Dir.glob("lib/**/*.rb")
+end
