@@ -1,6 +1,6 @@
 require 'delegate'
 
-require File.join( File.dirname(__FILE__), "..", "vendor", "jetlang-0.2.0", "jetlang-0.2.0.jar" )
+require File.join( File.dirname(__FILE__), "..", "vendor", "jetlang-0.2.0.jar" )
 
 module JRL
   include_package 'org.jetlang.core'

@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/unit_test_helper'
 
 class TestChannel < Test::Unit::TestCase
-  include JRL::Concurrent
+  
 
   def setup
     @fiber = JRL::Fibers::ThreadFiber.new
@@ -20,7 +20,7 @@ class TestChannel < Test::Unit::TestCase
     @channel.subscribe( @fiber ) { |msg| result = msg; latch.count_down }
     @channel.publish "Hello"
 
-    assert latch.await( 1, TimeUnit::SECONDS )
+    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
     assert_equal "Hello", result
   end
 
@@ -35,7 +35,7 @@ class TestChannel < Test::Unit::TestCase
     @channel.subscribe( fiber_from_fact ) { |msg| result = msg; latch.count_down }
     @channel.publish "Hello"
 
-    latch.await( 1.5, TimeUnit::SECONDS )
+    latch.await( 1.5, JRL::Concurrent::TimeUnit::SECONDS )
     assert_equal "Hello", result
 
     fact.dispose
@@ -45,17 +45,17 @@ class TestChannel < Test::Unit::TestCase
 
   def test_fiber_schedule
     latch = JRL::Concurrent::CountDownLatch.new( 1 )
-    runnable = lambda { |msg| latch.count_down }
+    runnable = lambda { latch.count_down }
     @fiber.schedule( runnable, 0.01, JRL::Concurrent::TimeUnit::SECONDS )
     assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
   end
 
-#  def test_fiber_schedule_recurring
-#    latch = JRL::Concurrent::CountDownLatch.new( 5 )
-#    runnable = lambda { |msg| latch.count_down }
-#    @fiber.schedule_with_fixed_delay( runnable, 0.001, 0.002, JRL::Concurrent::TimeUnit::SECONDS )
-#    assert latch.await( 5, JRL::Concurrent::TimeUnit::SECONDS )
-#  end
+  def test_fiber_schedule_recurring
+    latch = JRL::Concurrent::CountDownLatch.new( 5 )
+    runnable = lambda { latch.count_down }
+    @fiber.schedule_with_fixed_delay( runnable, 1, 2, JRL::Concurrent::TimeUnit::MILLISECONDS )
+    assert latch.await( 5, JRL::Concurrent::TimeUnit::SECONDS )
+  end
 
   def test_unsubscribe
     latch = JRL::Concurrent::CountDownLatch.new( 1 )
@@ -68,149 +68,74 @@ class TestChannel < Test::Unit::TestCase
     assert !latch_two.await( 0.01, JRL::Concurrent::TimeUnit::SECONDS )
   end
 
-#    @Test
-#    public void pubSubWithDedicatedThreadWithFilter() throws InterruptedException {
-#        Fiber fiber = new ThreadFiber();
-#        fiber.start();
-#        Channel<Integer> channel = new MemoryChannel<Integer>();
-#
-#        final CountDownLatch reset = new CountDownLatch(1);
-#        Callback<Integer> onMsg = new Callback<Integer>() {
-#            public void onMessage(Integer x) {
-#                Assert.assertTrue(x % 2 == 0);
-#                if (x == 4) {
-#                    reset.countDown();
-#                }
-#            }
-#        };
-#        Filter<Integer> filter = new Filter<Integer>() {
-#            public boolean passes(Integer msg) {
-#                return msg % 2 == 0;
-#            }
-#        };
-#        ChannelSubscription<Integer> sub = new ChannelSubscription<Integer>(fiber, onMsg, filter);
-#        channel.subscribe(sub);
-#        channel.publish(1);
-#        channel.publish(2);
-#        channel.publish(3);
-#        channel.publish(4);
-#
-#        Assert.assertTrue(reset.await(5000, TimeUnit.MILLISECONDS));
-#        fiber.dispose();
-#    }
-#
-#
-#    @Test
-#    public void batching() throws InterruptedException {
-#        Fiber fiber = new ThreadFiber();
-#        fiber.start();
-#        MemoryChannel<Integer> counter = new MemoryChannel<Integer>();
-#        final CountDownLatch reset = new CountDownLatch(1);
-#        Callback<List<Integer>> cb = new Callback<List<Integer>>() {
-#            int total = 0;
-#
-#            public void onMessage(List<Integer> batch) {
-#                total += batch.size();
-#                if (total == 10) {
-#                    reset.countDown();
-#                }
-#            }
-#        };
-#
-#        BatchSubscriber<Integer> batch = new BatchSubscriber<Integer>(fiber, cb, 0, TimeUnit.MILLISECONDS);
-#        counter.subscribe(batch);
-#
-#        for (int i = 0; i < 10; i++) {
-#            counter.publish(i);
-#        }
-#
-#        Assert.assertTrue(reset.await(10000, TimeUnit.MILLISECONDS));
-#        fiber.dispose();
-#    }
-#
-#    @Test
-#    public void batchingWithKey() throws InterruptedException {
-#        Fiber fiber = new ThreadFiber();
-#        fiber.start();
-#        Channel<Integer> counter = new MemoryChannel<Integer>();
-#        final CountDownLatch reset = new CountDownLatch(1);
-#        Callback<Map<String, Integer>> cb = new Callback<Map<String, Integer>>() {
-#            public void onMessage(Map<String, Integer> batch) {
-#                if (batch.containsKey("9")) {
-#                    reset.countDown();
-#                }
-#            }
-#        };
-#
-#        Converter<Integer, String> keyResolver = new Converter<Integer, String>() {
-#            public String convert(Integer msg) {
-#                return msg.toString();
-#            }
-#        };
-#        KeyedBatchSubscriber<String, Integer> batch = new KeyedBatchSubscriber<String, Integer>(fiber, cb, 0, TimeUnit.MILLISECONDS, keyResolver);
-#        counter.subscribe(batch);
-#
-#
-#        for (int i = 0; i < 10; i++) {
-#            counter.publish(i);
-#        }
-#
-#        Assert.assertTrue(reset.await(10000, TimeUnit.MILLISECONDS));
-#        fiber.dispose();
-#    }
-#
-#
-#    @Test
-#    // introduced in 1.7
-#    public void simpleRequestResponse() throws InterruptedException {
-#        Fiber req = new ThreadFiber();
-#        Fiber reply = new ThreadFiber();
-#        req.start();
-#        reply.start();
-#        RequestChannel<String, Integer> channel = new MemoryRequestChannel<String, Integer>();
-#        Callback<Request<String, Integer>> onReq = new Callback<Request<String, Integer>>() {
-#            public void onMessage(Request<String, Integer> message) {
-#                assertEquals("hello", message.getRequest());
-#                message.reply(1);
-#            }
-#        };
-#        channel.subscribe(reply, onReq);
-#
-#        final CountDownLatch done = new CountDownLatch(1);
-#        Callback<Integer> onReply = new Callback<Integer>() {
-#            public void onMessage(Integer message) {
-#                assertEquals(1, message.intValue());
-#                done.countDown();
-#            }
-#        };
-#        AsyncRequest.withOneReply(req, channel, "hello", onReply);
-#        assertTrue(done.await(10, TimeUnit.SECONDS));
-#        req.dispose();
-#        reply.dispose();
-#    }
-#
-#
-#    @Test
-#    public void requestReplyWithBlockingQueue() throws InterruptedException {
-#        Fiber fiber = new ThreadFiber();
-#        fiber.start();
-#        BlockingQueue<String> replyQueue = new ArrayBlockingQueue<String>(1);
-#        MemoryChannel<BlockingQueue<String>> channel = new MemoryChannel<BlockingQueue<String>>();
-#        Callback<BlockingQueue<String>> replyCb = new Callback<BlockingQueue<String>>() {
-#            public void onMessage(BlockingQueue<String> message) {
-#                try {
-#                    message.put("hello");
-#                } catch (InterruptedException e) {
-#                    throw new RuntimeException(e);
-#                }
-#            }
-#        };
-#        channel.subscribe(fiber, replyCb);
-#        channel.publish(replyQueue);
-#
-#        Assert.assertEquals("hello", replyQueue.poll(10, TimeUnit.SECONDS));
-#        fiber.dispose();
-#    }
-#
-#
+  def test_pub_sub_with_filter
+    latch = JRL::Concurrent::CountDownLatch.new( 2 )
+    results = []
+    runnable = lambda { |msg| results << msg; latch.count_down }
+    filter = lambda { |msg| msg % 2 == 0 }
+
+    sub = JRL::Channels::ChannelSubscription.new( @fiber, runnable, filter )
+    @channel.subscribe( sub )
+    4.times{ |i| @channel.publish( i ) }
+
+    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
+    assert_equal [0,2], results
+  end
+
+  def test_batching
+    latch = JRL::Concurrent::CountDownLatch.new( 10 )
+    total_msgs = 0
+    batches = []
+    runnable = lambda { |msg| batches << msg; total_msgs += msg.size; msg.size.times{ latch.count_down } }
+
+    batch = JRL::Channels::BatchSubscriber.new( @fiber, runnable, 0, JRL::Concurrent::TimeUnit::SECONDS)
+    @channel.subscribe( batch )
+    10.times{ |i| @channel.publish( i ) }
+
+    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
+    assert 10 > batches.size
+    assert_equal 10, total_msgs
+  end
+
+  def test_batching_with_key
+    latch = JRL::Concurrent::CountDownLatch.new( 9 )
+    total_msgs = 0
+    batches = []
+    runnable = lambda { |msg| batches << msg; total_msgs += msg.size; msg.size.times{ latch.count_down } }
+    key_resolver = lambda { |msg| msg.to_s }
+
+    batch = JRL::Channels::KeyedBatchSubscriber.new( @fiber, runnable, 0, JRL::Concurrent::TimeUnit::SECONDS, key_resolver)
+    @channel.subscribe( batch )
+    [0,1,2,3,4,5,6,7,8,8].each{ |i| @channel.publish( i ) }
+
+    assert 9 > batches.size
+    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS ), 'latch await'
+    assert_equal 9, total_msgs
+  end
+
+  def test_simple_request_response
+    reply_fiber = JRL::Fibers::ThreadFiber.new
+    reply_fiber.start
+    request_channel = JRL::Channels::MemoryRequestChannel.new
+    latch = JRL::Concurrent::CountDownLatch.new( 1 )
+
+    reply_callback = lambda { |msg| assert_equal 'hello', msg.get_request; msg.reply( 1 ) }
+    request_channel.subscribe( reply_fiber, reply_callback )
+
+    response_callback = lambda { |msg| assert_equal 1, msg; latch.count_down }
+
+    JRL::Channels::AsyncRequest.with_one_reply( @fiber, request_channel, 'hello', response_callback )
+    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS ), 'latch await'
+
+    reply_fiber.dispose
+  end
+
+  def test_request_reply_blocking
+    reply_queue = JRL::Concurrent::ArrayBlockingQueue.new( 1 )
+    callback = lambda { |queue| queue.put( 'hello' ) }
+    @channel.subscribe( @fiber, callback )
+    @channel.publish( reply_queue )
+
+    assert_equal "hello", reply_queue.poll( 1, JRL::Concurrent::TimeUnit::SECONDS )
+  end
 end
