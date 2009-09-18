@@ -1,4 +1,10 @@
-commit bd2b3abc501acca03e0b24c538fa5791f0909fa7
+commit 57b738b3827824db7d8b4c3425a3efb82d1ea823
+Author: Gareth Reeves <greeves@drwholdings.com>
+
+    in this release (0.1.2)
+    - nothing, trying gem build
+
+commit a85424f26dd0af757a78dc4c066fc0eb328cc377
 Author: Gareth Reeves <greeves@drwholdings.com>
 
     in this release (0.1.1)
