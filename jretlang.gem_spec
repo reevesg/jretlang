@@ -1,7 +1,6 @@
-require 'lib/jretlang/version'
 Gem::Specification.new do |s|
   s.name = "jretlang"
-  s.version = JRL::VERSION
+  s.version = "0.1.2"
   s.platform = Gem::Platform::CURRENT
   s.summary = "JRuby wrapper for jetlang (jetlang.org)"
   s.description = s.summary
