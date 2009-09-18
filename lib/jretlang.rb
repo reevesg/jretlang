@@ -16,5 +16,4 @@ module JRL
   end
 end
 
-require 'lib/jretlang/version'
 require 'lib/jretlang/channel'
