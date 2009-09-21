@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{jretlang}
-  s.version = "0.1.2"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gareth Reeves"]
-  s.date = %q{2009-09-18}
+  s.date = %q{2009-09-21}
   s.description = %q{A JRuby package of jretlang}
   s.email = %q{reevesg@pobox.com}
   s.files = [
@@ -17,8 +17,11 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "changelog",
+     "jretlang.gemspec",
      "lib/jretlang.rb",
      "lib/jretlang/channel.rb",
+     "lib/jretlang/fiber.rb",
+     "lib/jretlang/latch.rb",
      "readme",
      "test/unit/test_channel.rb",
      "test/unit/unit_test_helper.rb",

@@ -1,4 +1,10 @@
-commit 57b738b3827824db7d8b4c3425a3efb82d1ea823
+commit 902ebb2b7d180798fe25d06cd81714f6a4d3fa99
+Author: Gareth Reeves <greeves@drwholdings.com>
+
+    in this release (0.2.0)
+    - wrapped channel and fiber to give them more of a ruby like interface
+
+commit db7b77419317c18c664c4fe0858307ab646a2762
 Author: Gareth Reeves <greeves@drwholdings.com>
 
     in this release (0.1.2)
