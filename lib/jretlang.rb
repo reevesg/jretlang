@@ -16,4 +16,6 @@ module JRL
   end
 end
 
+require 'lib/jretlang/latch'
 require 'lib/jretlang/channel'
+require 'lib/jretlang/fiber'

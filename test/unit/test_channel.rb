@@ -1,12 +1,14 @@
 require File.dirname(__FILE__) + '/unit_test_helper'
 
 class TestChannel < Test::Unit::TestCase
-  
-
   def setup
-    @fiber = JRL::Fibers::ThreadFiber.new
+    @fiber = JRL::Fiber.new
     @channel = JRL::Channel.new 
     @fiber.start
+  end
+
+  def latch( count ) 
+    JRL::Concurrent::Latch.new( count )
   end
 
   def teardown 
@@ -14,13 +16,13 @@ class TestChannel < Test::Unit::TestCase
   end
 
   def test_pub_sub
-    latch = JRL::Concurrent::CountDownLatch.new( 1 )
+    l = latch( 1 )
 
     result = nil
-    @channel.subscribe( @fiber ) { |msg| result = msg; latch.count_down }
+    @channel.subscribe_on_fiber( @fiber ) { |msg| result = msg; l.count_down }
     @channel.publish "Hello"
 
-    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
+    assert l.await( 1 )
     assert_equal "Hello", result
   end
 
@@ -29,13 +31,13 @@ class TestChannel < Test::Unit::TestCase
     fact = JRL::Fibers::PoolFiberFactory.new(service);
     fiber_from_fact = fact.create
     fiber_from_fact.start
-    latch = JRL::Concurrent::CountDownLatch.new( 1 )
+    l = latch( 1 )
 
     result = nil
-    @channel.subscribe( fiber_from_fact ) { |msg| result = msg; latch.count_down }
+    @channel.subscribe_on_fiber( fiber_from_fact ) { |msg| result = msg; l.count_down }
     @channel.publish "Hello"
 
-    latch.await( 1.5, JRL::Concurrent::TimeUnit::SECONDS )
+    l.await( 1.5 )
     assert_equal "Hello", result
 
     fact.dispose
@@ -44,72 +46,73 @@ class TestChannel < Test::Unit::TestCase
   end
 
   def test_fiber_schedule
-    latch = JRL::Concurrent::CountDownLatch.new( 1 )
-    runnable = lambda { latch.count_down }
-    @fiber.schedule( runnable, 0.01, JRL::Concurrent::TimeUnit::SECONDS )
-    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
+    l = latch( 1 )
+    @fiber.schedule( 0.01 ) { l.count_down }
+    assert l.await( 1 )
   end
 
   def test_fiber_schedule_recurring
-    latch = JRL::Concurrent::CountDownLatch.new( 5 )
-    runnable = lambda { latch.count_down }
-    @fiber.schedule_with_fixed_delay( runnable, 1, 2, JRL::Concurrent::TimeUnit::MILLISECONDS )
-    assert latch.await( 5, JRL::Concurrent::TimeUnit::SECONDS )
+    l = latch( 5 )
+    @fiber.schedule_with_delay( 1, 2, JRL::Concurrent::TimeUnit::MILLISECONDS ) { l.count_down }
+    assert l.await( 1 )
   end
 
   def test_unsubscribe
-    latch = JRL::Concurrent::CountDownLatch.new( 1 )
-    latch_two = JRL::Concurrent::CountDownLatch.new( 2 )
-    unsub = @channel.subscribe( @fiber ) { |msg| latch.count_down; latch_two.count_down }
+    l1 = latch( 1 )
+    l2 = latch( 2 )
+    unsub = @channel.subscribe_on_fiber( @fiber ) { |msg| l1.count_down; l2.count_down }
+
     @channel.publish( "one" )
-    assert latch.await( 5, JRL::Concurrent::TimeUnit::SECONDS )
+    assert l1.await( 5 )
     unsub.dispose
     @channel.publish( "two" )
-    assert !latch_two.await( 0.01, JRL::Concurrent::TimeUnit::SECONDS )
+    assert !l2.await( 0.01 )
   end
 
   def test_pub_sub_with_filter
-    latch = JRL::Concurrent::CountDownLatch.new( 2 )
+    l = latch( 2 )
     results = []
-    runnable = lambda { |msg| results << msg; latch.count_down }
     filter = lambda { |msg| msg % 2 == 0 }
 
-    sub = JRL::Channels::ChannelSubscription.new( @fiber, runnable, filter )
-    @channel.subscribe( sub )
+    @channel.subscribe_on_fiber_with_filter( @fiber, filter ) { |msg| results << msg; l.count_down }
     4.times{ |i| @channel.publish( i ) }
 
-    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
+    assert l.await( 1 )
     assert_equal [0,2], results
   end
 
   def test_batching
-    latch = JRL::Concurrent::CountDownLatch.new( 10 )
+    l = latch( 10 )
     total_msgs = 0
     batches = []
-    runnable = lambda { |msg| batches << msg; total_msgs += msg.size; msg.size.times{ latch.count_down } }
+    @channel.subscribe_on_fiber_with_batch( @fiber, 0 ) do |msg| 
+      batches << msg
+      total_msgs += msg.size
+      msg.size.times{ l.count_down } 
+    end
 
-    batch = JRL::Channels::BatchSubscriber.new( @fiber, runnable, 0, JRL::Concurrent::TimeUnit::SECONDS)
-    @channel.subscribe( batch )
     10.times{ |i| @channel.publish( i ) }
 
-    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS )
+    assert l.await( 1 )
     assert 10 > batches.size
     assert_equal 10, total_msgs
   end
 
   def test_batching_with_key
-    latch = JRL::Concurrent::CountDownLatch.new( 9 )
+    l = latch( 9 )
     total_msgs = 0
     batches = []
-    runnable = lambda { |msg| batches << msg; total_msgs += msg.size; msg.size.times{ latch.count_down } }
     key_resolver = lambda { |msg| msg.to_s }
+    @channel.subscribe_on_fiber_with_batch_and_key( @fiber, key_resolver, 0 ) do |msg| 
+      batches << msg
+      total_msgs += msg.size
+      msg.size.times{ l.count_down }
+    end
 
-    batch = JRL::Channels::KeyedBatchSubscriber.new( @fiber, runnable, 0, JRL::Concurrent::TimeUnit::SECONDS, key_resolver)
-    @channel.subscribe( batch )
     [0,1,2,3,4,5,6,7,8,8].each{ |i| @channel.publish( i ) }
 
     assert 9 > batches.size
-    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS ), 'latch await'
+    assert l.await( 1 )
     assert_equal 9, total_msgs
   end
 
@@ -117,23 +120,21 @@ class TestChannel < Test::Unit::TestCase
     reply_fiber = JRL::Fibers::ThreadFiber.new
     reply_fiber.start
     request_channel = JRL::Channels::MemoryRequestChannel.new
-    latch = JRL::Concurrent::CountDownLatch.new( 1 )
+    l = latch( 1 )
 
-    reply_callback = lambda { |msg| assert_equal 'hello', msg.get_request; msg.reply( 1 ) }
-    request_channel.subscribe( reply_fiber, reply_callback )
+    request_channel.subscribe( reply_fiber ) { |msg| assert_equal 'hello', msg.get_request; msg.reply( 1 ) }
 
-    response_callback = lambda { |msg| assert_equal 1, msg; latch.count_down }
+    response_callback = lambda { |msg| assert_equal 1, msg; l.count_down }
 
-    JRL::Channels::AsyncRequest.with_one_reply( @fiber, request_channel, 'hello', response_callback )
-    assert latch.await( 1, JRL::Concurrent::TimeUnit::SECONDS ), 'latch await'
+    JRL::Channels::AsyncRequest.with_one_reply( @fiber.__getobj__, request_channel, 'hello', response_callback )
+    assert l.await( 1 )
 
     reply_fiber.dispose
   end
 
   def test_request_reply_blocking
     reply_queue = JRL::Concurrent::ArrayBlockingQueue.new( 1 )
-    callback = lambda { |queue| queue.put( 'hello' ) }
-    @channel.subscribe( @fiber, callback )
+    @channel.subscribe_on_fiber( @fiber ) { |queue| queue.put( 'hello' ) }
     @channel.publish( reply_queue )
 
     assert_equal "hello", reply_queue.poll( 1, JRL::Concurrent::TimeUnit::SECONDS )
