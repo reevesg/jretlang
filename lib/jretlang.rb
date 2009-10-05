@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'delegate'
 
 require File.join( File.dirname(__FILE__), "..", "vendor", "jetlang-0.2.0.jar" )
@@ -16,6 +17,6 @@ module JRL
   end
 end
 
-require 'lib/jretlang/latch'
-require 'lib/jretlang/channel'
-require 'lib/jretlang/fiber'
+require 'jretlang/latch'
+require 'jretlang/channel'
+require 'jretlang/fiber'

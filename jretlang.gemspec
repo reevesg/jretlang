@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gareth Reeves"]
-  s.date = %q{2009-09-21}
+  s.date = %q{2009-10-05}
   s.description = %q{A JRuby package of jretlang}
   s.email = %q{reevesg@pobox.com}
   s.files = [
@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
      "lib/jretlang/fiber.rb",
      "lib/jretlang/latch.rb",
      "readme",
-     "test/unit/test_channel.rb",
+     "test/unit/test_examples.rb",
      "test/unit/unit_test_helper.rb",
      "vendor/jetlang-0.2.0.jar",
      "vendor/jetlang-0.2.0/jetlang-0.2.0-sources.jar",
@@ -137,7 +137,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{A JRuby package of jretlang}
   s.test_files = [
-    "test/unit/test_channel.rb",
+    "test/unit/test_examples.rb",
      "test/unit/unit_test_helper.rb"
   ]
 

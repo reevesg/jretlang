@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'rake/gempackagetask'
 require 'fileutils'
 require 'ftools'
 require 'rake/testtask'
@@ -16,7 +15,6 @@ Jeweler::Tasks.new do |gemspec|
   gemspec.homepage = "http://github.com/reevesg/jretlang"
   gemspec.authors = ["Gareth Reeves"]
 end
-
 
 Rake::TestTask.new do |t|
   t.libs << "test/unit"
