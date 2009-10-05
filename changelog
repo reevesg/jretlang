@@ -1,4 +1,10 @@
-commit 902ebb2b7d180798fe25d06cd81714f6a4d3fa99
+commit 379fd8916325b9bb42a28fd9727c564111c33d63
+Author: Gareth Reeves <greeves@drwholdings.com>
+
+    in this release (0.2.1)
+    - fixed gem problems (hopefully)
+
+commit ab615acde9742dac47104a42b5a6b92c7c308272
 Author: Gareth Reeves <greeves@drwholdings.com>
 
     in this release (0.2.0)
