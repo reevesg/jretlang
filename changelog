@@ -1,4 +1,10 @@
-commit 379fd8916325b9bb42a28fd9727c564111c33d63
+commit da32dcd9da5cf9c8e3a7edc76465d032e5ca433d
+Author: Gareth Reeves <greeves@drwholdings.com>
+
+    in this release (0.2.2)
+    -improved schedule method names on Fiber
+
+commit e6d7e3a6fb4a52ee89876fecfd65f9ef2a46b711
 Author: Gareth Reeves <greeves@drwholdings.com>
 
     in this release (0.2.1)

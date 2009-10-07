@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{jretlang}
-  s.version = "0.2.1"
+  s.version = "0.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gareth Reeves"]
-  s.date = %q{2009-10-05}
+  s.date = %q{2009-10-07}
   s.description = %q{A JRuby package of jretlang}
   s.email = %q{reevesg@pobox.com}
   s.files = [
