@@ -4,12 +4,12 @@ class JRL::Fiber < SimpleDelegator
     super( @f )
   end
 
-  def schedule( time, time_unit=JRL::Concurrent::TimeUnit::SECONDS, &block )
-    @f.schedule( block, time, time_unit )
+  def schedule_one_time( delay, time_unit=JRL::Concurrent::TimeUnit::SECONDS, &block )
+    @f.schedule( block, delay, time_unit )
   end
 
-  def schedule_with_delay( delay, time, time_unit=JRL::Concurrent::TimeUnit::SECONDS, &block )
-    @f.schedule_with_fixed_delay( block, delay, time, time_unit )
+  def schedule_repeating( delay, interval, time_unit=JRL::Concurrent::TimeUnit::SECONDS, &block )
+    @f.schedule_with_fixed_delay( block, delay, interval, time_unit )
   end
 end
 

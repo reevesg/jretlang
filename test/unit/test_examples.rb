@@ -47,13 +47,13 @@ class TestChannel < Test::Unit::TestCase
 
   def test_fiber_schedule
     l = latch( 1 )
-    @fiber.schedule( 0.01 ) { l.count_down }
+    @fiber.schedule_one_time( 0.01 ) { l.count_down }
     assert l.await( 1 )
   end
 
   def test_fiber_schedule_recurring
     l = latch( 5 )
-    @fiber.schedule_with_delay( 1, 2, JRL::Concurrent::TimeUnit::MILLISECONDS ) { l.count_down }
+    @fiber.schedule_repeating( 1, 2, JRL::Concurrent::TimeUnit::MILLISECONDS ) { l.count_down }
     assert l.await( 1 )
   end
 
