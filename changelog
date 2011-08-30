@@ -1,3 +1,9 @@
+commit af71bb977c6b6e56661386223703bd99d29b4ad6
+Author: Gareth Reeves <greeves@drwholdings.com>
+
+    In this release (0.3.0)
+    - Upgraded jetlang to 0.2.5
+
 commit 454f958b29906bfb9f9de20a8edd0dbe54685fb2
 Author: Gareth Reeves <greeves@drwholdings.com>
 
